@@ -7,7 +7,7 @@ extern crate dotenv;
 
 use std::{env};
 use dotenv::dotenv;
-use actix_web::{http, server, App, Path, Responder,fs,Result,HttpRequest,Json};
+use actix_web::{server, App, fs, Result, HttpRequest, Json};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Person {
@@ -16,16 +16,31 @@ struct Person {
     email: String,
     phone: String
 }
+struct Hohto {
+  session_cookie: String
+}
+
+impl Hohto {
+  fn new(session_cookie: &str) -> Self {
+      Hohto {
+          session_cookie: session_cookie.into()
+      }
+  }
+  fn me(&self) -> Result<Person, ()> {
+    reqwest::Client::new()
+        .get("https://hohtopp.goforecrew.com/api/persons/me")
+        .header(reqwest::header::COOKIE, self.session_cookie.clone())
+        .send().or(Err(()))?
+        .json().or(Err(()))
+  }
+}
+
 fn index(_req: &HttpRequest) -> Result<fs::NamedFile> {
     Ok(fs::NamedFile::open("static/index.html")?)
 }
 fn me(_req: &HttpRequest) -> Result<Json<Person>> {
     let session_cookie = env::var("HOHTO_SESSION").expect("Expected HOHTO_SESSION environment variable");
-    let person: Person  = reqwest::Client::new()
-        .get("https://hohtopp.goforecrew.com/api/persons/me")
-        .header(reqwest::header::COOKIE, session_cookie.clone())
-        .send().unwrap()
-        .json().unwrap();
+    let person = Hohto::new(&session_cookie).me().unwrap();
     Ok(Json(person))
 }
 
