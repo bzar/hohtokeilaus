@@ -1,66 +1,44 @@
+extern crate actix_web;
 #[macro_use]
-extern crate tower_web;
-extern crate tokio;
+extern crate serde_derive;
+extern crate serde;
 extern crate dotenv;
 
 
-use tower_web::ServiceBuilder;
-use tokio::prelude::*;
-use tokio::{fs::File};
-use std::{io, path::PathBuf,env};
+use std::{env};
 use dotenv::dotenv;
-#[derive(Clone, Debug)]
-struct App {
-    session_cookie: String
-}
+use actix_web::{http, server, App, Path, Responder,fs,Result,HttpRequest,Json};
 
-#[derive(Serialize,Deserialize,Response)]
+#[derive(Debug, Serialize, Deserialize)]
 struct Person {
     id: usize,
     name: String,
     email: String,
     phone: String
 }
-
-impl_web! {
-    impl App {
-        #[get("/")]
-        #[content_type("text/html")]
-        fn index(&self) -> impl Future<Item = File, Error = io::Error> {
-            let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-            path.push("static");
-            path.push("index.html");
-            File::open(path)
-        }
-
-        #[get("/*relative_path")]
-        #[content_type("plain")]
-        fn files(&self, relative_path: PathBuf) -> impl Future<Item = File, Error = io::Error> {
-            let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-            path.push("static");
-            path.push(relative_path);
-            File::open(path)
-        }
-        #[get("/api/me")]
-        fn me(&self) -> Result<Person, ()> {
-            reqwest::Client::new()
-                .get("https://hohtopp.goforecrew.com/api/persons/me")
-                .header(reqwest::header::COOKIE, self.session_cookie.clone())
-                .send().or(Err(()))?
-                .json().or(Err(()))
-        }
-    }
+fn index(_req: &HttpRequest) -> Result<fs::NamedFile> {
+    Ok(fs::NamedFile::open("static/index.html")?)
+}
+fn me(_req: &HttpRequest) -> Result<Json<Person>> {
+    let session_cookie = env::var("HOHTO_SESSION").expect("Expected HOHTO_SESSION environment variable");
+    let person: Person  = reqwest::Client::new()
+        .get("https://hohtopp.goforecrew.com/api/persons/me")
+        .header(reqwest::header::COOKIE, session_cookie.clone())
+        .send().unwrap()
+        .json().unwrap();
+    Ok(Json(person))
 }
 
 pub fn main() {
     dotenv().ok();
-    let session_cookie = env::var("HOHTO_SESSION").expect("Expected HOHTO_SESSION environment variable");
 
-    let addr = "127.0.0.1:8080".parse().expect("Invalid address");
-    println!("Listening on http://{}", addr);
+    server::new(|| App::new()
+                .resource("/api/me", |r| r.f(me))
+		.resource("/", |r| r.f(index))
+		.handler("/", fs::StaticFiles::new("static").unwrap()))
+		.bind("127.0.0.1:8080").unwrap()
+		.run();
 
-    ServiceBuilder::new()
-        .resource(App { session_cookie })
-        .run(&addr)
-        .unwrap();
+/*
+        */
 }

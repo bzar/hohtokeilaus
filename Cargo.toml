@@ -6,9 +6,10 @@ edition = "2018"
 
 [dependencies]
 dotenv = "0.13.0"
-tower-web = "0.3.4"
-tokio = "0.1.15"
+actix = "0.7"
+actix-web = "0.7"
 serde = "1.0.88"
+serde_derive = "1.0.88"
 http = "0.1.7"
 
 reqwest = "0.9.10"
