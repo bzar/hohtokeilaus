@@ -5,40 +5,40 @@
 <div class="pins">
     <div class="row">
 
-      <div class="pin" >
+      <div class="pin" [ngClass]="{'fallen': game.pins[0].fallen === true}" >
         {{ game.pins[0].name}}
       </div>
-      <div class="pin" >
+      <div class="pin" [ngClass]="{'fallen': game.pins[1].fallen === true}" >
         {{ game.pins[1].name}}
       </div>
-      <div class="pin" >
+      <div class="pin" [ngClass]="{'fallen': game.pins[2].fallen === true}" >
         {{ game.pins[2].name}}
       </div>
-      <div class="pin" >
+      <div class="pin" [ngClass]="{'fallen': game.pins[3].fallen === true}" >
         {{ game.pins[3].name}}
       </div>
       </div>
     <div class="row">
-      <div class="pin" >
+      <div class="pin" [ngClass]="{'fallen': game.pins[4].fallen === true}" >
         {{ game.pins[4].name}}
       </div>
-      <div class="pin" >
+      <div class="pin" [ngClass]="{'fallen': game.pins[5].fallen === true}" >
         {{ game.pins[5].name}}
       </div>
-      <div class="pin" >
+      <div class="pin" [ngClass]="{'fallen': game.pins[6].fallen === true}" >
         {{ game.pins[6].name}}
       </div>
     </div>
     <div class="row">
-      <div class="pin" >
+      <div class="pin" [ngClass]="{'fallen': game.pins[7].fallen === true}" >
         {{ game.pins[7].name}}
       </div>
-      <div class="pin" >
+      <div class="pin" [ngClass]="{'fallen': game.pins[8].fallen === true}" >
         {{ game.pins[8].name}}
       </div>
     </div>
     <div class="row">
-      <div class="pin" >
+      <div class="pin" [ngClass]="{'fallen': game.pins[9].fallen === true}" >
         {{ game.pins[9].name}}
       </div>
     </div>

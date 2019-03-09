@@ -23,15 +23,20 @@ export class GameComponent implements OnInit {
 
   createNewGame(): void{
     this.gameService.getNewGame()
-      .subscribe(newGame => this.game = newGame)
+      .subscribe(newGame => {
+        this.game = newGame;
+        this.throws = [];
+      })
   }
 
   throwSkill(bowling_throw: BowlingThrow): void{
       this.throws.push(bowling_throw);
       this.gameService.throwSkill(this.game.id, this.throws)
         .subscribe(gameState => {
-          this.game = gameState
-          gameState.fallen.map(id => this.game.pins[id].fallen = true);
+          this.game = gameState;
+          gameState.fallen.map(id => {
+            this.game.pins[id].fallen = true
+          });
         });
   }
 
