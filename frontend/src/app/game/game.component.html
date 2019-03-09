@@ -8,5 +8,5 @@ Pins:
 
 Throws:
 <ul>
-  <li *ngFor="let gamethrow of game.throws">{{ gamethrow.name }}</li>
+  <li *ngFor="let gameThrow of game.throws" (click)="throwSkill(gameThrow)">{{ gameThrow.name }}</li>
 </ul>

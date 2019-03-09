@@ -4,6 +4,7 @@ import { HttpClient, HttpHeaders} from "@angular/common/http";
 import { catchError, map, tap} from "rxjs/operators";
 import { MessageService } from './message.service';
 import {BowlingGame} from "./BowlingGame";
+import {BowlingThrow} from "./BowlingThrow";
 
 @Injectable({
   providedIn: 'root'
@@ -16,12 +17,14 @@ export class GameService {
   ) { }
 
   private newGameApi = '/api/new_game';
+  private playApi = ('/api/play')
 
   defaultGame: BowlingGame = {
     id: 0,
     pins: [],
     throws: []
   };
+
 
   getNewGame(): Observable<BowlingGame> {
     return this.http.get<BowlingGame>(this.newGameApi)
@@ -30,6 +33,15 @@ export class GameService {
         catchError(this.handleError('getNewGame', this.defaultGame))
       )
   }
+
+  throwSkill(game_id: number, throws: BowlingThrow[]): Observable<BowlingGame> {
+    return this.http.post<BowlingGame>(this.playApi, {'game': game_id, 'throws': throws})
+      .pipe(
+        tap( _ => this.log('skill thrown and new game state fethed')),
+        catchError(this.handleError('throwSkill', this.defaultGame))
+      )
+  }
+
 
   /**
    * Handle Http operation that failed.
