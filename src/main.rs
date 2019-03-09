@@ -11,11 +11,13 @@ use actix_web::{server, App, fs, Result, HttpRequest, Json};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct BowlingPin {
+    id: u32,
     name: String,
     image: String
 }
 #[derive(Debug, Serialize, Deserialize)]
 struct BowlingThrow {
+    id: u32,
     name: String
 }
 #[derive(Debug, Serialize, Deserialize)]
@@ -25,12 +27,32 @@ struct BowlingGame {
     throws: Vec<BowlingThrow>
 }
 
+impl BowlingGame {
+    fn from_id(id: u32) -> Self {
+        BowlingGame {
+            id: id,
+            pins: vec![
+                BowlingPin { id: 0, name: "foo0".into(), image: "image0".into() },
+                BowlingPin { id: 1, name: "foo1".into(), image: "image1".into() },
+                BowlingPin { id: 2, name: "foo2".into(), image: "image2".into() },
+                BowlingPin { id: 3, name: "foo3".into(), image: "image3".into() },
+                BowlingPin { id: 4, name: "foo4".into(), image: "image4".into() }
+            ],
+            throws: vec![
+                BowlingThrow { id: 0, name: "skill0".into() },
+                BowlingThrow { id: 1, name: "skill1".into() },
+                BowlingThrow { id: 2, name: "skill2".into() },
+                BowlingThrow { id: 3, name: "skill3".into() }
+            ]
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 struct Person {
     id: usize,
     name: String,
-    email: String,
-    phone: String
+    email: String
 }
 struct Hohto {
   session_cookie: String
@@ -60,22 +82,7 @@ fn me(_req: &HttpRequest) -> Result<Json<Person>> {
     Ok(Json(person))
 }
 fn new_game(_req: &HttpRequest) -> Result<Json<BowlingGame>> {
-    let game = BowlingGame {
-        id: 42,
-        pins: vec![
-            BowlingPin { name: "foo0".into(), image: "image0".into() },
-            BowlingPin { name: "foo1".into(), image: "image1".into() },
-            BowlingPin { name: "foo2".into(), image: "image2".into() },
-            BowlingPin { name: "foo3".into(), image: "image3".into() },
-            BowlingPin { name: "foo4".into(), image: "image4".into() }
-        ],
-        throws: vec![
-            BowlingThrow { name: "skill0".into() },
-            BowlingThrow { name: "skill1".into() },
-            BowlingThrow { name: "skill2".into() },
-            BowlingThrow { name: "skill3".into() }
-        ]
-    };
+    let game = BowlingGame::from_id(42);
     Ok(Json(game))
 }
 
