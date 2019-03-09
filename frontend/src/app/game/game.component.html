@@ -6,39 +6,49 @@
     <div class="row">
 
       <div class="pin" [ngClass]="{'fallen': game?.pins[0].fallen === true}" >
+        <img *ngIf="game?.pins[0].image" src="https://hohtopp.goforecrew.com/api/images/{{game?.pins[0].image}}">
         {{ game?.pins[0].name}}
       </div>
       <div class="pin" [ngClass]="{'fallen': game?.pins[1].fallen === true}" >
+        <img *ngIf="game?.pins[1].image" src="https://hohtopp.goforecrew.com/api/images/{{game?.pins[1].image}}">
         {{ game?.pins[1].name}}
       </div>
       <div class="pin" [ngClass]="{'fallen': game?.pins[2].fallen === true}" >
+        <img *ngIf="game?.pins[2].image" src="https://hohtopp.goforecrew.com/api/images/{{game?.pins[2].image}}">
         {{ game?.pins[2].name}}
       </div>
       <div class="pin" [ngClass]="{'fallen': game?.pins[3].fallen === true}" >
+        <img *ngIf="game?.pins[3].image" src="https://hohtopp.goforecrew.com/api/images/{{game?.pins[3].image}}">
         {{ game?.pins[3].name}}
       </div>
       </div>
     <div class="row">
       <div class="pin" [ngClass]="{'fallen': game?.pins[4].fallen === true}" >
+        <img *ngIf="game?.pins[4].image" src="https://hohtopp.goforecrew.com/api/images/{{game?.pins[4].image}}">
         {{ game?.pins[4].name}}
       </div>
       <div class="pin" [ngClass]="{'fallen': game?.pins[5].fallen === true}" >
+        <img *ngIf="game?.pins[5].image" src="https://hohtopp.goforecrew.com/api/images/{{game?.pins[5].image}}">
         {{ game?.pins[5].name}}
       </div>
       <div class="pin" [ngClass]="{'fallen': game?.pins[6].fallen === true}" >
+        <img *ngIf="game?.pins[6].image" src="https://hohtopp.goforecrew.com/api/images/{{game?.pins[7].image}}">
         {{ game?.pins[6].name}}
       </div>
     </div>
     <div class="row">
       <div class="pin" [ngClass]="{'fallen': game?.pins[7].fallen === true}" >
+        <img *ngIf="game?.pins[7].image" src="https://hohtopp.goforecrew.com/api/images/{{game?.pins[7].image}}">
         {{ game?.pins[7].name}}
       </div>
       <div class="pin" [ngClass]="{'fallen': game?.pins[8].fallen === true}" >
+        <img *ngIf="game?.pins[8].image" src="https://hohtopp.goforecrew.com/api/images/{{game?.pins[8].image}}">
         {{ game?.pins[8].name}}
       </div>
     </div>
     <div class="row">
       <div class="pin" [ngClass]="{'fallen': game?.pins[9].fallen === true}" >
+        <img *ngIf="game?.pins[9].image" src="https://hohtopp.goforecrew.com/api/images/{{game?.pins[9].image}}">
         {{ game?.pins[9].name}}
       </div>
     </div>
