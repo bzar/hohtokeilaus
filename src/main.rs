@@ -87,6 +87,18 @@ impl Default for AppState {
         s
     }
 }
+impl AppState {
+    fn new() -> Self {
+        let session_cookie = env::var("HOHTO_SESSION").expect("Expected HOHTO_SESSION environment variable");
+        let persons = Hohto::new(&session_cookie).persons().unwrap();
+        AppState {
+            persons: persons.items.into_iter().map(|p| (p.id, p)).collect(),
+            skills: HashMap::default(),
+            person_skills: HashMap::default()
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct Person {
     id: u32,
