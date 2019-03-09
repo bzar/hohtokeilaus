@@ -8,7 +8,6 @@ extern crate rand_xorshift;
 
 
 use std::{env};
-use rand::rngs::SmallRng;
 use rand_xorshift::XorShiftRng;
 use rand::seq::IteratorRandom;
 use rand::{SeedableRng};
@@ -186,7 +185,8 @@ fn bowling_pins(_req: &HttpRequest<AppState>) -> Result<Json<Vec<Person>>> {
     Ok(Json(persons.items))
 }
 fn new_game(req: &HttpRequest<AppState>) -> Result<Json<BowlingGame>> {
-    let game = BowlingGame::from_id(42, req.state());
+    let id: u32 = rand::random();
+    let game = BowlingGame::from_id(id, req.state());
     Ok(Json(game))
 }
 fn skills(_req: &HttpRequest<AppState>) -> Result<Json<Vec<PersonSkill>>> {
