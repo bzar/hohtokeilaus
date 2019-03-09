@@ -98,6 +98,12 @@ impl AppState {
             skills: HashMap::default().into()
         }
     }
+    fn skills_by_person_id(id: u32) -> Vec<PersonSkill> {
+        let session_cookie = env::var("HOHTO_SESSION").expect("Expected HOHTO_SESSION environment variable");
+        let skills = Hohto::new(&session_cookie).skills_by_person_id(id).unwrap();
+        
+        skills.items
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -114,6 +120,22 @@ struct Persons {
 struct Skill {
     id: u32,
     name: String
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+struct SkillName {
+    fi: String
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+struct PersonSkill {
+    id: u32,
+    name: SkillName
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+struct PersonSkills {
+    items: Vec<PersonSkill>
 }
 
 struct Hohto {
@@ -141,6 +163,15 @@ impl Hohto {
         .send().or(Err(()))?
         .json().or(Err(()))
   }
+
+  fn skills_by_person_id(&self, id: u32) -> Result<PersonSkills, ()> {
+    let url = format!("https://hohtopp.goforecrew.com/api/persons/{}/skills", id);
+    reqwest::Client::new()
+        .get(&url)
+        .header(reqwest::header::COOKIE, self.session_cookie.clone())
+        .send().or(Err(()))?
+        .json().or(Err(()))
+  }
 }
 
 fn index(_req: &HttpRequest<AppState>) -> Result<fs::NamedFile> {
@@ -160,6 +191,11 @@ fn new_game(req: &HttpRequest<AppState>) -> Result<Json<BowlingGame>> {
     let game = BowlingGame::from_id(42, req.state());
     Ok(Json(game))
 }
+fn skills(_req: &HttpRequest<AppState>) -> Result<Json<Vec<PersonSkill>>> {
+    let session_cookie = env::var("HOHTO_SESSION").expect("Expected HOHTO_SESSION environment variable");
+    let skills = Hohto::new(&session_cookie).skills_by_person_id(272).unwrap();
+    Ok(Json(skills.items))
+}
 fn play((bp, req): (Json<BowlingPlay>, HttpRequest<AppState>)) -> Result<Json<BowlingGame>> {
     let mut game = BowlingGame::from_id(bp.game, req.state());
     for throw in &bp.throws {
@@ -176,6 +212,7 @@ pub fn main() {
                 .resource("/api/new_game", |r| r.f(new_game))
                 .resource("/api/play", |r| r.with(play))
                 .resource("api/bowling_pins", |r| r.f(bowling_pins))
+                .resource("api/skills", |r| r.f(skills))
 		.resource("/", |r| r.f(index))
 		.handler("/", fs::StaticFiles::new("static").unwrap()))
 		.bind("127.0.0.1:8080").unwrap()
