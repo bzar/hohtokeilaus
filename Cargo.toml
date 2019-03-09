@@ -1,0 +1,13 @@
+[package]
+name = "hohtokeilaus"
+version = "0.1.0"
+authors = ["Teemu Erkkola <teemu.erkkola@iki.fi>"]
+edition = "2018"
+
+[dependencies]
+tower-web = "0.3.4"
+tokio = "0.1.15"
+serde = "1.0.88"
+http = "0.1.7"
+
+reqwest = "0.9.10"
