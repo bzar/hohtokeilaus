@@ -42,9 +42,8 @@ impl BowlingGame {
         let pins = pin_persons.iter().enumerate().map(|(i, p)|
             BowlingPin { id: i as u32, name: p.name.clone(), image: p.name.clone() 
         }).collect();
-        let skills = state.skills.borrow();
         let skill_set: HashSet<_> = pin_persons.iter()
-            .flat_map(|p| skills.get(&p.id).unwrap().iter()
+            .flat_map(|p| state.skills_by_person_id(p.id).into_iter()
                       .map(|s| (s.id, s.name.clone())))
             .collect();
         let throws = skill_set.into_iter()
@@ -98,11 +97,19 @@ impl AppState {
             skills: HashMap::default().into()
         }
     }
-    fn skills_by_person_id(id: u32) -> Vec<PersonSkill> {
-        let session_cookie = env::var("HOHTO_SESSION").expect("Expected HOHTO_SESSION environment variable");
-        let skills = Hohto::new(&session_cookie).skills_by_person_id(id).unwrap();
-        
-        skills.items
+    fn skills_by_person_id(&self, id: u32) -> Vec<Skill> {
+        let mut skills = self.skills.borrow_mut();
+        match skills.get(&id) {
+            Some(skills) => skills.clone(),
+            None => {
+                let session_cookie = env::var("HOHTO_SESSION").expect("Expected HOHTO_SESSION environment variable");
+                let person_skills: Vec<_> = Hohto::new(&session_cookie).skills_by_person_id(id)
+                    .unwrap().items.into_iter()
+                    .map(|ps| Skill { id: ps.id, name: ps.name.fi }).collect();
+                skills.insert(id, person_skills.clone());
+                person_skills
+            }
+        }
     }
 }
 
@@ -117,6 +124,7 @@ struct Persons {
     items: Vec<Person>
 }
 
+#[derive(Clone)]
 struct Skill {
     id: u32,
     name: String
@@ -207,7 +215,7 @@ fn play((bp, req): (Json<BowlingPlay>, HttpRequest<AppState>)) -> Result<Json<Bo
 pub fn main() {
     dotenv().ok();
 
-    server::new(|| App::with_state(AppState::default())
+    server::new(|| App::with_state(AppState::new())
                 .resource("/api/me", |r| r.f(me))
                 .resource("/api/new_game", |r| r.f(new_game))
                 .resource("/api/play", |r| r.with(play))
