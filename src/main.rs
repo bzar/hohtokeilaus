@@ -5,7 +5,7 @@ extern crate serde;
 extern crate dotenv;
 
 
-use std::{env};
+use std::{env, HashMap};
 use dotenv::dotenv;
 use actix_web::{server, App, fs, Result, HttpRequest, Json};
 
@@ -58,7 +58,8 @@ impl BowlingGame {
 }
 
 struct AppState {
-    
+    persons: HashMap<u32, Person>,
+    skills: HashMap<u32, Skill> 
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -71,6 +72,9 @@ struct Person {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct Persons {
     items: Vec<Person>
+}
+
+struct Skill {
 }
 
 struct Hohto {
