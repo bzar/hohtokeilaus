@@ -49,8 +49,12 @@ impl BowlingGame {
             .collect();
         BowlingGame { id: id, pins, fallen: Vec::default(), throws }
     }
-    fn play(&mut self, throw: u32) {
+    fn play(&mut self, throw: u32, state: &AppState) {
         self.throws.retain(|t| t.id != throw);
+        let falling: Vec<_> = self.pins.iter().filter(|p| !self.fallen.contains(&p.id))
+            .filter(|p| state.skills.get(&p.id).unwrap().iter().any(|s| s.id == throw))
+            .map(|s| s.id).collect();
+        self.fallen.extend(falling.iter());
     }
 }
 
@@ -156,7 +160,7 @@ fn new_game(req: &HttpRequest<AppState>) -> Result<Json<BowlingGame>> {
 fn play((bp, req): (Json<BowlingPlay>, HttpRequest<AppState>)) -> Result<Json<BowlingGame>> {
     let mut game = BowlingGame::from_id(bp.game, req.state());
     for throw in &bp.throws {
-        game.play(*throw);
+        game.play(*throw, req.state());
     }
     Ok(Json(game))
 }
