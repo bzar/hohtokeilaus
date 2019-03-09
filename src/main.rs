@@ -25,6 +25,7 @@ struct BowlingThrow {
 struct BowlingGame {
     id: u32,
     pins: Vec<BowlingPin>,
+    fallen: Vec<u32>,
     throws: Vec<BowlingThrow>
 }
 
@@ -45,6 +46,7 @@ impl BowlingGame {
                 BowlingPin { id: 3, name: "foo3".into(), image: "image3".into() },
                 BowlingPin { id: 4, name: "foo4".into(), image: "image4".into() }
             ],
+            fallen: vec![],
             throws: vec![
                 BowlingThrow { id: 0, name: "skill0".into() },
                 BowlingThrow { id: 1, name: "skill1".into() },
@@ -60,14 +62,35 @@ impl BowlingGame {
 
 struct AppState {
     persons: HashMap<u32, Person>,
-    skills: HashMap<u32, Skill> 
+    skills: HashMap<u32, Skill>,
+    person_skills: HashMap<u32, Vec<u32>>
 }
 
+impl Default for AppState {
+    fn default() -> Self {
+        let mut s = AppState {
+            persons: HashMap::default(),
+            skills: HashMap::default(),
+            person_skills: HashMap::default()
+        };
+        for pid in 0..128 {
+            s.persons.insert(pid, Person {
+                id: pid,
+                name: format!("Person {}", pid)
+            });
+            s.person_skills.insert(pid, vec![pid, pid + 1, pid + 2, pid + 3, pid + 4]);
+        }
+        for pid in 0..256 {
+            s.skills.insert(pid, Skill {});
+        }
+
+        s
+    }
+}
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct Person {
-    id: usize,
-    name: String,
-    email: String
+    id: u32,
+    name: String
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -105,20 +128,20 @@ impl Hohto {
   }
 }
 
-fn index(_req: &HttpRequest) -> Result<fs::NamedFile> {
+fn index(_req: &HttpRequest<AppState>) -> Result<fs::NamedFile> {
     Ok(fs::NamedFile::open("static/index.html")?)
 }
-fn me(_req: &HttpRequest) -> Result<Json<Person>> {
+fn me(_req: &HttpRequest<AppState>) -> Result<Json<Person>> {
     let session_cookie = env::var("HOHTO_SESSION").expect("Expected HOHTO_SESSION environment variable");
     let person = Hohto::new(&session_cookie).me().unwrap();
     Ok(Json(person))
 }
-fn bowling_pins(_req: &HttpRequest) -> Result<Json<Vec<Person>>> {
+fn bowling_pins(_req: &HttpRequest<AppState>) -> Result<Json<Vec<Person>>> {
     let session_cookie = env::var("HOHTO_SESSION").expect("Expected HOHTO_SESSION environment variable");
     let persons = Hohto::new(&session_cookie).persons().unwrap();
     Ok(Json(persons.items))
 }
-fn new_game(_req: &HttpRequest) -> Result<Json<BowlingGame>> {
+fn new_game(_req: &HttpRequest<AppState>) -> Result<Json<BowlingGame>> {
     let game = BowlingGame::from_id(42);
     Ok(Json(game))
 }
@@ -133,7 +156,7 @@ fn play(bp: Json<BowlingPlay>) -> Result<Json<BowlingGame>> {
 pub fn main() {
     dotenv().ok();
 
-    server::new(|| App::new()
+    server::new(|| App::with_state(AppState::default())
                 .resource("/api/me", |r| r.f(me))
                 .resource("/api/new_game", |r| r.f(new_game))
                 .resource("/api/play", |r| r.with(play))
