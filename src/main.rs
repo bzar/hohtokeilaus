@@ -14,6 +14,7 @@ use std::cell::RefCell;
 #[derive(Debug, Serialize, Deserialize)]
 struct BowlingPin {
     id: u32,
+    user_id: u32,
     name: String,
     image: String
 }
@@ -40,7 +41,7 @@ impl BowlingGame {
     fn from_id(id: u32, state: &AppState) -> Self {
         let pin_persons: Vec<_> = state.persons.values().take(10).map(|p| p.clone()).collect();
         let pins = pin_persons.iter().enumerate().map(|(i, p)|
-            BowlingPin { id: i as u32, name: p.name.clone(), image: p.name.clone() 
+            BowlingPin { id: i as u32, user_id: p.id, name: p.name.clone(), image: p.name.clone() 
         }).collect();
         let skill_set: HashSet<_> = pin_persons.iter()
             .flat_map(|p| state.skills_by_person_id(p.id).into_iter()
@@ -54,7 +55,7 @@ impl BowlingGame {
     fn play(&mut self, throw: u32, state: &AppState) {
         self.throws.retain(|t| t.id != throw);
         let falling: Vec<_> = self.pins.iter().filter(|p| !self.fallen.contains(&p.id))
-            .filter(|p| state.skills.borrow().get(&p.id).unwrap().iter().any(|s| s.id == throw))
+            .filter(|p| state.skills_by_person_id(p.user_id).into_iter().any(|s| s.id == throw))
             .map(|s| s.id).collect();
         self.fallen.extend(falling.iter());
     }
@@ -65,29 +66,6 @@ struct AppState {
     skills: RefCell<HashMap<u32, Vec<Skill>>>
 }
 
-impl Default for AppState {
-    fn default() -> Self {
-        let mut s = AppState {
-            persons: HashMap::default(),
-            skills: HashMap::default().into()
-        };
-        for pid in 0..128 {
-            s.persons.insert(pid, Person {
-                id: pid,
-                name: format!("Person {}", pid)
-            });
-        }
-        for pid in 0..256 {
-            s.skills.borrow_mut().insert(pid, vec![
-                            Skill { id: 0, name: "Skill 0".into() },
-                            Skill { id: 1, name: "Skill 1".into() },
-                            Skill { id: 2, name: "Skill 2".into() },
-            ]);
-        }
-
-        s
-    }
-}
 impl AppState {
     fn new() -> Self {
         let session_cookie = env::var("HOHTO_SESSION").expect("Expected HOHTO_SESSION environment variable");
