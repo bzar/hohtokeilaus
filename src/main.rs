@@ -33,7 +33,7 @@ impl_web! {
             File::open(path)
         }
 
-        #[get("/static/*relative_path")]
+        #[get("/*relative_path")]
         #[content_type("plain")]
         fn files(&self, relative_path: PathBuf) -> impl Future<Item = File, Error = io::Error> {
             let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
