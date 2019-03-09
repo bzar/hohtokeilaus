@@ -27,6 +27,12 @@ struct BowlingGame {
     throws: Vec<BowlingThrow>
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+struct BowlingPlay {
+    game: u32,
+    throws: Vec<u32>
+}
+
 impl BowlingGame {
     fn from_id(id: u32) -> Self {
         BowlingGame {
@@ -45,6 +51,9 @@ impl BowlingGame {
                 BowlingThrow { id: 3, name: "skill3".into() }
             ]
         }
+    }
+    fn play(&mut self, throw: u32) {
+        self.throws.retain(|t| t.id != throw);
     }
 }
 
@@ -85,6 +94,14 @@ fn new_game(_req: &HttpRequest) -> Result<Json<BowlingGame>> {
     let game = BowlingGame::from_id(42);
     Ok(Json(game))
 }
+fn play(_req: &HttpRequest) -> Result<Json<BowlingGame>> {
+    let bp = BowlingPlay { game: 42, throws: vec![1, 2] };
+    let mut game = BowlingGame::from_id(bp.game);
+    for throw in bp.throws {
+        game.play(throw);
+    }
+    Ok(Json(game))
+}
 
 pub fn main() {
     dotenv().ok();
@@ -92,11 +109,9 @@ pub fn main() {
     server::new(|| App::new()
                 .resource("/api/me", |r| r.f(me))
                 .resource("/api/new_game", |r| r.f(new_game))
+                .resource("/api/play", |r| r.f(play))
 		.resource("/", |r| r.f(index))
 		.handler("/", fs::StaticFiles::new("static").unwrap()))
 		.bind("127.0.0.1:8080").unwrap()
 		.run();
-
-/*
-        */
 }
