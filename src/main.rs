@@ -3,9 +3,15 @@ extern crate actix_web;
 extern crate serde_derive;
 extern crate serde;
 extern crate dotenv;
+extern crate rand;
+extern crate rand_xorshift;
 
 
 use std::{env};
+use rand::rngs::SmallRng;
+use rand_xorshift::XorShiftRng;
+use rand::seq::IteratorRandom;
+use rand::{SeedableRng};
 use std::collections::{HashMap, HashSet};
 use dotenv::dotenv;
 use actix_web::{server, App, fs, Result, HttpRequest, Json};
@@ -39,7 +45,12 @@ struct BowlingPlay {
 
 impl BowlingGame {
     fn from_id(id: u32, state: &AppState) -> Self {
-        let pin_persons: Vec<_> = state.persons.values().take(10).map(|p| p.clone()).collect();
+        let mut rng = XorShiftRng::seed_from_u64(id as u64);
+        let pin_persons: Vec<_> = {
+            let mut all: Vec<_> = state.persons.values().collect();
+            all.sort_by(|a, b| a.id.partial_cmp(&b.id).unwrap());
+            all.into_iter().choose_multiple(&mut rng, 10).into_iter().map(|p| p.clone()).collect()
+        };
         let pins = pin_persons.iter().enumerate().map(|(i, p)|
             BowlingPin { id: i as u32, user_id: p.id, name: p.name.clone(), image: p.name.clone() 
         }).collect();
