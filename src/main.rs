@@ -5,7 +5,8 @@ extern crate serde;
 extern crate dotenv;
 
 
-use std::{env, HashMap};
+use std::{env};
+use std::collections::HashMap;
 use dotenv::dotenv;
 use actix_web::{server, App, fs, Result, HttpRequest, Json};
 
