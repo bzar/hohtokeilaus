@@ -21,7 +21,17 @@ export class GameService {
 
   defaultGame: BowlingGame = {
     id: 0,
-    pins: [],
+    pins: [
+      {name:'', fallen: false, image: ""},
+      {name:'', fallen: false, image: ""},
+      {name:'', fallen: false, image: ""},
+      {name:'', fallen: false, image: ""},
+      {name:'', fallen: false, image: ""},
+      {name:'', fallen: false, image: ""},
+      {name:'', fallen: false, image: ""},
+      {name:'', fallen: false, image: ""},
+      {name:'', fallen: false, image: ""},
+      {name:'', fallen: false, image: ""}],
     throws: [],
     fallen: []
   };
