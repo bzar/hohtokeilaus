@@ -61,12 +61,18 @@ struct AppState {
     
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 struct Person {
     id: usize,
     name: String,
     email: String
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+struct Persons {
+    items: Vec<Person>
+}
+
 struct Hohto {
   session_cookie: String
 }
@@ -84,6 +90,14 @@ impl Hohto {
         .send().or(Err(()))?
         .json().or(Err(()))
   }
+
+  fn persons(&self) -> Result<Persons, ()> {
+    reqwest::Client::new()
+        .get("https://hohtopp.goforecrew.com/api/persons")
+        .header(reqwest::header::COOKIE, self.session_cookie.clone())
+        .send().or(Err(()))?
+        .json().or(Err(()))
+  }
 }
 
 fn index(_req: &HttpRequest) -> Result<fs::NamedFile> {
@@ -93,6 +107,11 @@ fn me(_req: &HttpRequest) -> Result<Json<Person>> {
     let session_cookie = env::var("HOHTO_SESSION").expect("Expected HOHTO_SESSION environment variable");
     let person = Hohto::new(&session_cookie).me().unwrap();
     Ok(Json(person))
+}
+fn bowling_pins(_req: &HttpRequest) -> Result<Json<Vec<Person>>> {
+    let session_cookie = env::var("HOHTO_SESSION").expect("Expected HOHTO_SESSION environment variable");
+    let persons = Hohto::new(&session_cookie).persons().unwrap();
+    Ok(Json(persons.items))
 }
 fn new_game(_req: &HttpRequest) -> Result<Json<BowlingGame>> {
     let game = BowlingGame::from_id(42);
@@ -113,6 +132,7 @@ pub fn main() {
                 .resource("/api/me", |r| r.f(me))
                 .resource("/api/new_game", |r| r.f(new_game))
                 .resource("/api/play", |r| r.with(play))
+                .resource("api/bowling_pins", |r| r.f(bowling_pins))
 		.resource("/", |r| r.f(index))
 		.handler("/", fs::StaticFiles::new("static").unwrap()))
 		.bind("127.0.0.1:8080").unwrap()
