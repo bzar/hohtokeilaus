@@ -35,7 +35,7 @@ export class GameService {
   }
 
   throwSkill(game_id: number, throws: BowlingThrow[]): Observable<BowlingGame> {
-    return this.http.post<BowlingGame>(this.playApi, {'game': game_id, 'throws': throws})
+    return this.http.post<BowlingGame>(this.playApi, {'game': game_id, 'throws': throws.map(a => a.id)})
       .pipe(
         tap( _ => this.log('skill thrown and new game state fethed')),
         catchError(this.handleError('throwSkill', this.defaultGame))
