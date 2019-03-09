@@ -9,6 +9,7 @@ use std::{env};
 use std::collections::{HashMap, HashSet};
 use dotenv::dotenv;
 use actix_web::{server, App, fs, Result, HttpRequest, Json};
+use std::cell::RefCell;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct BowlingPin {
@@ -41,8 +42,10 @@ impl BowlingGame {
         let pins = pin_persons.iter().enumerate().map(|(i, p)|
             BowlingPin { id: i as u32, name: p.name.clone(), image: p.name.clone() 
         }).collect();
+        let skills = state.skills.borrow();
         let skill_set: HashSet<_> = pin_persons.iter()
-            .flat_map(|p| state.skills.get(&p.id).unwrap().iter().map(|s| (s.id, s.name.clone())))
+            .flat_map(|p| skills.get(&p.id).unwrap().iter()
+                      .map(|s| (s.id, s.name.clone())))
             .collect();
         let throws = skill_set.into_iter()
             .map(|(id, name)| BowlingThrow { id, name })
@@ -52,7 +55,7 @@ impl BowlingGame {
     fn play(&mut self, throw: u32, state: &AppState) {
         self.throws.retain(|t| t.id != throw);
         let falling: Vec<_> = self.pins.iter().filter(|p| !self.fallen.contains(&p.id))
-            .filter(|p| state.skills.get(&p.id).unwrap().iter().any(|s| s.id == throw))
+            .filter(|p| state.skills.borrow().get(&p.id).unwrap().iter().any(|s| s.id == throw))
             .map(|s| s.id).collect();
         self.fallen.extend(falling.iter());
     }
@@ -60,14 +63,14 @@ impl BowlingGame {
 
 struct AppState {
     persons: HashMap<u32, Person>,
-    skills: HashMap<u32, Vec<Skill>>
+    skills: RefCell<HashMap<u32, Vec<Skill>>>
 }
 
 impl Default for AppState {
     fn default() -> Self {
         let mut s = AppState {
             persons: HashMap::default(),
-            skills: HashMap::default()
+            skills: HashMap::default().into()
         };
         for pid in 0..128 {
             s.persons.insert(pid, Person {
@@ -76,7 +79,7 @@ impl Default for AppState {
             });
         }
         for pid in 0..256 {
-            s.skills.insert(pid, vec![
+            s.skills.borrow_mut().insert(pid, vec![
                             Skill { id: 0, name: "Skill 0".into() },
                             Skill { id: 1, name: "Skill 1".into() },
                             Skill { id: 2, name: "Skill 2".into() },
@@ -92,7 +95,7 @@ impl AppState {
         let persons = Hohto::new(&session_cookie).persons().unwrap();
         AppState {
             persons: persons.items.into_iter().map(|p| (p.id, p)).collect(),
-            skills: HashMap::default()
+            skills: HashMap::default().into()
         }
     }
 }
