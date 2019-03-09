@@ -1,0 +1,10 @@
+<h1>Game Id: {{ game.id }}</h1>
+Pins:
+<ul>
+  <li *ngFor="let pin of game.pins">{{pin.name}} {{ pin.image}}</li>
+</ul>
+
+Throws:
+<ul>
+  <li *ngFor="let gamethrow of game.throws">{{ gamethrow.name }}</li>
+</ul>
