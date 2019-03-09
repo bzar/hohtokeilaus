@@ -57,6 +57,10 @@ impl BowlingGame {
     }
 }
 
+struct AppState {
+    
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 struct Person {
     id: usize,
@@ -94,11 +98,10 @@ fn new_game(_req: &HttpRequest) -> Result<Json<BowlingGame>> {
     let game = BowlingGame::from_id(42);
     Ok(Json(game))
 }
-fn play(_req: &HttpRequest) -> Result<Json<BowlingGame>> {
-    let bp = BowlingPlay { game: 42, throws: vec![1, 2] };
+fn play(bp: Json<BowlingPlay>) -> Result<Json<BowlingGame>> {
     let mut game = BowlingGame::from_id(bp.game);
-    for throw in bp.throws {
-        game.play(throw);
+    for throw in &bp.throws {
+        game.play(*throw);
     }
     Ok(Json(game))
 }
@@ -109,7 +112,7 @@ pub fn main() {
     server::new(|| App::new()
                 .resource("/api/me", |r| r.f(me))
                 .resource("/api/new_game", |r| r.f(new_game))
-                .resource("/api/play", |r| r.f(play))
+                .resource("/api/play", |r| r.with(play))
 		.resource("/", |r| r.f(index))
 		.handler("/", fs::StaticFiles::new("static").unwrap()))
 		.bind("127.0.0.1:8080").unwrap()
