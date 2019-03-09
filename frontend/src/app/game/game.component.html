@@ -1,12 +1,52 @@
 <button (click)="createNewGame()">Create new game</button>
 
 <h1>Game Id: {{ game.id }}</h1>
-Pins:
-<ul>
-  <li *ngFor="let pin of game.pins">{{pin.name}} {{ pin.image}}</li>
-</ul>
+<div class="wrapper">
+<div class="pins">
+    <div class="row">
 
-Throws:
-<ul>
-  <li *ngFor="let gameThrow of game.throws" (click)="throwSkill(gameThrow)">{{ gameThrow.name }}</li>
-</ul>
+      <div class="pin" >
+        {{ game.pins[0].name}}
+      </div>
+      <div class="pin" >
+        {{ game.pins[1].name}}
+      </div>
+      <div class="pin" >
+        {{ game.pins[2].name}}
+      </div>
+      <div class="pin" >
+        {{ game.pins[3].name}}
+      </div>
+      </div>
+    <div class="row">
+      <div class="pin" >
+        {{ game.pins[4].name}}
+      </div>
+      <div class="pin" >
+        {{ game.pins[5].name}}
+      </div>
+      <div class="pin" >
+        {{ game.pins[6].name}}
+      </div>
+    </div>
+    <div class="row">
+      <div class="pin" >
+        {{ game.pins[7].name}}
+      </div>
+      <div class="pin" >
+        {{ game.pins[8].name}}
+      </div>
+    </div>
+    <div class="row">
+      <div class="pin" >
+        {{ game.pins[9].name}}
+      </div>
+    </div>
+</div>
+
+<div class="throws">
+  <span class="throw" *ngFor="let gameThrow of game.throws" (click)="throwSkill(gameThrow)">{{ gameThrow.name }}</span>
+</div>
+
+
+</div>

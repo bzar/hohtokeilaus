@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import {BowlingGame} from "../BowlingGame";
 import {GameService} from "../game.service";
 import {BowlingThrow} from "../BowlingThrow";
+import {BowlingPin} from "../BowlingPin";
 
 @Component({
   selector: 'app-game',
@@ -28,6 +29,10 @@ export class GameComponent implements OnInit {
   throwSkill(bowling_throw: BowlingThrow): void{
       this.throws.push(bowling_throw);
       this.gameService.throwSkill(this.game.id, this.throws)
-        .subscribe(gameState => this.game = gameState);
+        .subscribe(gameState => {
+          this.game = gameState
+          gameState.fallen.map(id => this.game.pins[id].fallen = true);
+        });
   }
+
 }

@@ -22,7 +22,8 @@ export class GameService {
   defaultGame: BowlingGame = {
     id: 0,
     pins: [],
-    throws: []
+    throws: [],
+    fallen: []
   };
 
 
