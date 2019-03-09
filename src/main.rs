@@ -6,7 +6,7 @@ extern crate dotenv;
 
 
 use std::{env};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use dotenv::dotenv;
 use actix_web::{server, App, fs, Result, HttpRequest, Json};
 
@@ -36,24 +36,18 @@ struct BowlingPlay {
 }
 
 impl BowlingGame {
-    fn from_id(id: u32) -> Self {
-        BowlingGame {
-            id: id,
-            pins: vec![
-                BowlingPin { id: 0, name: "foo0".into(), image: "image0".into() },
-                BowlingPin { id: 1, name: "foo1".into(), image: "image1".into() },
-                BowlingPin { id: 2, name: "foo2".into(), image: "image2".into() },
-                BowlingPin { id: 3, name: "foo3".into(), image: "image3".into() },
-                BowlingPin { id: 4, name: "foo4".into(), image: "image4".into() }
-            ],
-            fallen: vec![],
-            throws: vec![
-                BowlingThrow { id: 0, name: "skill0".into() },
-                BowlingThrow { id: 1, name: "skill1".into() },
-                BowlingThrow { id: 2, name: "skill2".into() },
-                BowlingThrow { id: 3, name: "skill3".into() }
-            ]
-        }
+    fn from_id(id: u32, state: &AppState) -> Self {
+        let pin_persons: Vec<_> = state.persons.values().take(10).map(|p| p.clone()).collect();
+        let pins = pin_persons.iter().enumerate().map(|(i, p)|
+            BowlingPin { id: i as u32, name: p.name.clone(), image: p.name.clone() 
+        }).collect();
+        let skill_set: HashSet<_> = pin_persons.iter()
+            .flat_map(|p| state.skills.get(&p.id).unwrap().iter().map(|s| (s.id, s.name.clone())))
+            .collect();
+        let throws = skill_set.into_iter()
+            .map(|(id, name)| BowlingThrow { id, name })
+            .collect();
+        BowlingGame { id: id, pins, fallen: Vec::default(), throws }
     }
     fn play(&mut self, throw: u32) {
         self.throws.retain(|t| t.id != throw);
@@ -62,26 +56,27 @@ impl BowlingGame {
 
 struct AppState {
     persons: HashMap<u32, Person>,
-    skills: HashMap<u32, Skill>,
-    person_skills: HashMap<u32, Vec<u32>>
+    skills: HashMap<u32, Vec<Skill>>
 }
 
 impl Default for AppState {
     fn default() -> Self {
         let mut s = AppState {
             persons: HashMap::default(),
-            skills: HashMap::default(),
-            person_skills: HashMap::default()
+            skills: HashMap::default()
         };
         for pid in 0..128 {
             s.persons.insert(pid, Person {
                 id: pid,
                 name: format!("Person {}", pid)
             });
-            s.person_skills.insert(pid, vec![pid, pid + 1, pid + 2, pid + 3, pid + 4]);
         }
         for pid in 0..256 {
-            s.skills.insert(pid, Skill {});
+            s.skills.insert(pid, vec![
+                            Skill { id: 0, name: "Skill 0".into() },
+                            Skill { id: 1, name: "Skill 1".into() },
+                            Skill { id: 2, name: "Skill 2".into() },
+            ]);
         }
 
         s
@@ -93,8 +88,7 @@ impl AppState {
         let persons = Hohto::new(&session_cookie).persons().unwrap();
         AppState {
             persons: persons.items.into_iter().map(|p| (p.id, p)).collect(),
-            skills: HashMap::default(),
-            person_skills: HashMap::default()
+            skills: HashMap::default()
         }
     }
 }
@@ -111,6 +105,8 @@ struct Persons {
 }
 
 struct Skill {
+    id: u32,
+    name: String
 }
 
 struct Hohto {
@@ -153,12 +149,12 @@ fn bowling_pins(_req: &HttpRequest<AppState>) -> Result<Json<Vec<Person>>> {
     let persons = Hohto::new(&session_cookie).persons().unwrap();
     Ok(Json(persons.items))
 }
-fn new_game(_req: &HttpRequest<AppState>) -> Result<Json<BowlingGame>> {
-    let game = BowlingGame::from_id(42);
+fn new_game(req: &HttpRequest<AppState>) -> Result<Json<BowlingGame>> {
+    let game = BowlingGame::from_id(42, req.state());
     Ok(Json(game))
 }
-fn play(bp: Json<BowlingPlay>) -> Result<Json<BowlingGame>> {
-    let mut game = BowlingGame::from_id(bp.game);
+fn play((bp, req): (Json<BowlingPlay>, HttpRequest<AppState>)) -> Result<Json<BowlingGame>> {
+    let mut game = BowlingGame::from_id(bp.game, req.state());
     for throw in &bp.throws {
         game.play(*throw);
     }
