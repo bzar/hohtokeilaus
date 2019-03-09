@@ -5,6 +5,7 @@ authors = ["Teemu Erkkola <teemu.erkkola@iki.fi>"]
 edition = "2018"
 
 [dependencies]
+dotenv = "0.13.0"
 tower-web = "0.3.4"
 tokio = "0.1.15"
 serde = "1.0.88"

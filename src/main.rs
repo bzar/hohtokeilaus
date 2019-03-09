@@ -1,14 +1,18 @@
 #[macro_use]
 extern crate tower_web;
 extern crate tokio;
+extern crate dotenv;
+
 
 use tower_web::ServiceBuilder;
 use tokio::prelude::*;
 use tokio::{fs::File};
-use std::{io, path::PathBuf};
-
+use std::{io, path::PathBuf,env};
+use dotenv::dotenv;
 #[derive(Clone, Debug)]
-struct App;
+struct App {
+    session_cookie: String
+}
 
 #[derive(Serialize,Deserialize,Response)]
 struct Person {
@@ -17,8 +21,6 @@ struct Person {
     email: String,
     phone: String
 }
-
-const SESSION_COOKIE: &str = "session_id=hohto-session-id-here";
 
 impl_web! {
     impl App {
@@ -43,7 +45,7 @@ impl_web! {
         fn me(&self) -> Result<Person, ()> {
             reqwest::Client::new()
                 .get("https://hohtopp.goforecrew.com/api/persons/me")
-                .header(reqwest::header::COOKIE, SESSION_COOKIE)
+                .header(reqwest::header::COOKIE, self.session_cookie.clone())
                 .send().or(Err(()))?
                 .json().or(Err(()))
         }
@@ -51,11 +53,14 @@ impl_web! {
 }
 
 pub fn main() {
+    dotenv().ok();
+    let session_cookie = env::var("HOHTO_SESSION").expect("Expected HOHTO_SESSION environment variable");
+
     let addr = "127.0.0.1:8080".parse().expect("Invalid address");
     println!("Listening on http://{}", addr);
 
     ServiceBuilder::new()
-        .resource(App)
+        .resource(App { session_cookie })
         .run(&addr)
         .unwrap();
 }
