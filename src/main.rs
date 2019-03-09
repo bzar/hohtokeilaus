@@ -22,7 +22,7 @@ struct BowlingPin {
     id: u32,
     user_id: u32,
     name: String,
-    image: String
+    image: Option<String>
 }
 #[derive(Debug, Serialize, Deserialize)]
 struct BowlingThrow {
@@ -52,7 +52,7 @@ impl BowlingGame {
             all.into_iter().choose_multiple(&mut rng, 10).into_iter().map(|p| p.clone()).collect()
         };
         let pins = pin_persons.iter().enumerate().map(|(i, p)|
-            BowlingPin { id: i as u32, user_id: p.id, name: p.name.clone(), image: p.name.clone() 
+            BowlingPin { id: i as u32, user_id: p.id, name: p.name.clone(), image: p.avatar.clone() 
         }).collect();
         let skill_set: HashSet<_> = pin_persons.iter()
             .flat_map(|p| state.skills_by_person_id(p.id).into_iter()
@@ -105,7 +105,8 @@ impl AppState {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct Person {
     id: u32,
-    name: String
+    name: String,
+    avatar: Option<String>
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
